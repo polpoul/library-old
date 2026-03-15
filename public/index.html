@@ -203,7 +203,7 @@
             const content = document.getElementById('content');
             try {
                 // Appel à l'API Go — lit le dossier ressources en temps réel
-                const response = await fetch('/api/books');
+                const response = await fetch('/library/api/books');
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
                 const data = await response.json();
