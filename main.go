@@ -89,7 +89,6 @@ func extractMetadata(filePath string) (*BookMetadata, error) {
 	}
 	defer r.Close()
 
-	// Lire META-INF/container.xml
 	var opfPath string
 	for _, f := range r.File {
 		if f.Name == "META-INF/container.xml" {
@@ -115,7 +114,6 @@ func extractMetadata(filePath string) (*BookMetadata, error) {
 		return nil, nil
 	}
 
-	// Lire le fichier OPF
 	for _, f := range r.File {
 		if f.Name == opfPath {
 			rc, err := f.Open()
@@ -132,7 +130,6 @@ func extractMetadata(filePath string) (*BookMetadata, error) {
 
 			m := pkg.Metadata
 
-			// Nettoyer les auteurs et sujets
 			authors := make([]string, 0, len(m.Creator))
 			for _, a := range m.Creator {
 				if s := strings.TrimSpace(a); s != "" {
@@ -162,13 +159,43 @@ func extractMetadata(filePath string) (*BookMetadata, error) {
 	return nil, nil
 }
 
+// ── Auth middleware ───────────────────────────────────────────────────────────
+
+// authMiddleware vérifie le Bearer token auprès de auth-service.
+// Les requêtes sans token valide reçoivent un 401.
+func authMiddleware(authURL string, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		token := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
+		if token == "" {
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		req, err := http.NewRequestWithContext(r.Context(), http.MethodGet, authURL+"/auth/me", nil)
+		if err != nil {
+			http.Error(w, "internal error", http.StatusInternalServerError)
+			return
+		}
+		req.Header.Set("Authorization", "Bearer "+token)
+
+		client := &http.Client{Timeout: 5 * time.Second}
+		resp, err := client.Do(req)
+		if err != nil || resp.StatusCode != http.StatusOK {
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			return
+		}
+		resp.Body.Close()
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 // ── Handler API ───────────────────────────────────────────────────────────────
 
 func booksHandler(ressourcesPath string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		entries, err := os.ReadDir(ressourcesPath)
 		if err != nil {
-			// Dossier absent = catalogue vide, pas une erreur
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(BooksResponse{Count: 0, Files: []Book{}})
 			return
@@ -231,19 +258,31 @@ func main() {
 		ressourcesPath = "./ressources"
 	}
 
+	// URL du service auth (ex: https://auth.vivalink.top)
+	authURL := os.Getenv("AUTH_URL")
+	if authURL == "" {
+		log.Fatal("AUTH_URL environment variable is required")
+	}
+
 	mux := http.NewServeMux()
 
-	// API
-	mux.HandleFunc("/api/books", booksHandler(ressourcesPath))
+	// Routes protégées par auth
+	protected := func(h http.Handler) http.Handler {
+		return authMiddleware(authURL, h)
+	}
 
-	// Téléchargement des EPUBs
+	// API — protégée
+	mux.Handle("/api/books", protected(booksHandler(ressourcesPath)))
+
+	// Téléchargement EPUBs — protégé
 	fs := http.FileServer(http.Dir(ressourcesPath))
-	mux.Handle("/ressources/", http.StripPrefix("/ressources/", fs))
+	mux.Handle("/ressources/", protected(http.StripPrefix("/ressources/", fs)))
 
-	// Fichiers statiques du frontend
+	// Frontend statique — public (gère la page de login)
 	mux.Handle("/", http.FileServer(http.Dir("./public")))
 
 	log.Printf("📚 Library server on :%s", port)
 	log.Printf("📂 Ressources: %s", ressourcesPath)
+	log.Printf("🔐 Auth: %s", authURL)
 	log.Fatal(http.ListenAndServe(":"+port, mux))
 }
