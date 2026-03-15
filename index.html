@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>disponible</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 2rem;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+        }
+        
+        .book-list {
+            list-style: none;
+        }
+        
+        .book-item {
+            background: #f8f9fa;
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            border-left: 4px solid #667eea;
+        }
+        
+        .book-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            background: #e9ecef;
+        }
+        
+        .book-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        
+        .book-link * {
+            color: inherit;
+        }
+        
+        .book-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        
+        .book-title {
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: #333;
+            margin-bottom: 0.3rem;
+        }
+        
+        .book-authors {
+            font-size: 1rem;
+            color: #667eea !important;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        
+        .book-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 0.5rem;
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        
+        .book-description {
+            margin-top: 0.8rem;
+            padding-top: 0.8rem;
+            border-top: 1px solid #dee2e6;
+            font-size: 0.9rem;
+            color: #555;
+            line-height: 1.5;
+            max-height: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .book-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.8rem;
+        }
+        
+        .tag {
+            background: #667eea;
+            color: white;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .book-icon {
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+        
+        .no-files {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .count {
+            text-align: center;
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #667eea;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 5px;
+            border-left: 4px solid #f5c6cb;
+            margin: 1rem 0;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .last-update {
+            text-align: center;
+            color: #999;
+            font-size: 0.8rem;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+
+        .search-box {
+            margin-bottom: 1.5rem;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📚 disponible</h1>
+        
+        
+        <div class="search-box">
+            <input 
+                type="text" 
+                id="search" 
+                class="search-input" 
+                placeholder="🔍 Rechercher "
+            >
+        </div>
+
+        <div id="content">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Chargement ...</p>
+            </div>
+        </div>
+
+        <div id="last-update" class="last-update"></div>
+    </div>
+
+    <script>
+        let allBooks = [];
+
+        // Fonction pour formater la taille des fichiers
+        function formatSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Fonction pour formater la date
+        function formatDate(isoDate) {
+            const date = new Date(isoDate);
+            return date.toLocaleDateString('fr-FR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Fonction pour tronquer le texte
+        function truncate(text, maxLength) {
+            if (!text || text.length <= maxLength) return text;
+            return text.substr(0, maxLength) + '...';
+        }
+
+        // Fonction pour afficher les livres
+        function displayBooks(books) {
+            const content = document.getElementById('content');
+            
+            if (books.length === 0) {
+                content.innerHTML = '<div class="no-files">Aucun livre ne correspond à votre recherche.</div>';
+                return;
+            }
+
+            let html = `<div class="count">${books.length} ligne(s) affichée(s)</div>`;
+            html += '<ul class="book-list">';
+
+            books.forEach(file => {
+                const meta = file.metadata || {};
+                
+                html += `<li class="book-item">
+                    <a href="${file.path}" class="book-link" download>
+                        <div class="book-header">
+                            <div style="flex: 1;">
+                                <div class="book-title">${file.displayName}</div>
+                                ${meta.authors ? `<div class="book-authors">par ${meta.authors.join(', ')}</div>` : ''}
+                            </div>
+                            <span class="book-icon">📖</span>
+                        </div>
+                        
+                        <div class="book-meta">
+                            <span class="meta-item">💾 ${formatSize(file.size)}</span>
+                        
+                         
+                            ${meta.date ? `<span class="meta-item">📅 ${meta.date.split('-')[0]}</span>` : ''}
+                        </div>
+                        
+                        ${meta.description ? `<div class="book-description">${truncate(meta.description, 200)}</div>` : ''}
+                        
+                        ${meta.subjects && meta.subjects.length > 0 ? `
+                            <div class="book-tags">
+                                ${meta.subjects.slice(0, 5).map(tag => `<span class="tag">${tag}</span>`).join('')}
+                            </div>
+                        ` : ''}
+                    </a>
+                </li>`;
+            });
+
+            html += '</ul>';
+            content.innerHTML = html;
+        }
+
+        // Fonction de recherche
+        function filterBooks(query) {
+            if (!query.trim()) {
+                displayBooks(allBooks);
+                return;
+            }
+
+            const searchTerm = query.toLowerCase();
+            const filtered = allBooks.filter(book => {
+                const meta = book.metadata || {};
+                
+                // Rechercher dans le titre
+                if (book.displayName.toLowerCase().includes(searchTerm)) return true;
+                
+                // Rechercher dans les auteurs
+                if (meta.authors && meta.authors.some(a => a.toLowerCase().includes(searchTerm))) return true;
+                
+                // Rechercher dans la description
+                if (meta.description && meta.description.toLowerCase().includes(searchTerm)) return true;
+                
+                // Rechercher dans les sujets
+                if (meta.subjects && meta.subjects.some(s => s.toLowerCase().includes(searchTerm))) return true;
+                
+                // Rechercher dans l'éditeur
+                if (meta.publisher && meta.publisher.toLowerCase().includes(searchTerm)) return true;
+                
+                return false;
+            });
+
+            displayBooks(filtered);
+        }
+
+        // Charger les fichiers depuis le JSON généré
+        async function loadBooks() {
+            const content = document.getElementById('content');
+            const lastUpdateEl = document.getElementById('last-update');
+            
+            try {
+                const response = await fetch('./books.json');
+                
+                if (!response.ok) {
+                    throw new Error('Impossible de charger la liste des livres');
+                }
+                
+                const data = await response.json();
+                allBooks = data.files;
+                
+                // Afficher la date de génération
+                if (data.generated) {
+                    lastUpdateEl.textContent = `Liste mise à jour le ${formatDate(data.generated)}`;
+                }
+                
+                if (data.count === 0) {
+                    content.innerHTML = '<div class="no-files">Aucun fichier EPUB trouvé dans le dossier "ressources".</div>';
+                    return;
+                }
+
+                displayBooks(allBooks);
+                
+            } catch (error) {
+                content.innerHTML = `
+                    <div class="error">
+                        ❌ Erreur de chargement : ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Event listener pour la recherche
+        document.getElementById('search').addEventListener('input', (e) => {
+            filterBooks(e.target.value);
+        });
+
+        // Charger les livres au chargement de la page
+        loadBooks();
+    </script>
+</body>
+</html>

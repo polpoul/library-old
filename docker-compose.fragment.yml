@@ -1,0 +1,45 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# À ajouter dans docker-compose.yml sur le VPS (section "services:")
+# ─────────────────────────────────────────────────────────────────────────────
+
+  library:
+    image: ghcr.io/polpoul/library:latest
+    container_name: library
+    restart: unless-stopped
+
+    environment:
+      PORT: "3000"
+      RESSOURCES_PATH: "/app/ressources"
+
+    volumes:
+      # Dossier des EPUBs sur le VPS → monté en lecture seule dans le container
+      - /opt/library/ressources:/app/ressources:ro
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.library.rule=Host(`vivalink.top`) && PathPrefix(`/library`)"
+      - "traefik.http.routers.library.entrypoints=websecure"
+      - "traefik.http.routers.library.tls.certresolver=myresolver"
+      # Strip du préfixe /library avant transmission au container
+      - "traefik.http.middlewares.library-strip.stripprefix.prefixes=/library"
+      - "traefik.http.routers.library.middlewares=library-strip"
+      - "traefik.http.services.library.loadbalancer.server.port=3000"
+
+    networks:
+      - web
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Commandes de déploiement sur le VPS :
+#
+#   # Créer le dossier et y déposer les EPUBs
+#   mkdir -p /opt/library/ressources
+#   scp *.epub user@87.106.43.140:/opt/library/ressources/
+#
+#   # Démarrer le service (Watchtower prendra le relai ensuite)
+#   docker-compose pull library
+#   docker-compose up -d library
+#
+# Ajouter un EPUB plus tard :
+#   scp nouveau.epub user@87.106.43.140:/opt/library/ressources/
+#   → visible immédiatement au prochain chargement de page, sans restart
+# ─────────────────────────────────────────────────────────────────────────────

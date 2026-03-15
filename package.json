@@ -1,0 +1,14 @@
+{
+  "name": "epub-library",
+  "version": "1.0.0",
+  "description": "Bibliothèque EPUB avec liste automatique et métadonnées",
+  "scripts": {
+    "build": "node build-books-list.js"
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.10",
+    "xml2js": "^0.6.2"
+  },
+  "author": "",
+  "license": "MIT"
+}
