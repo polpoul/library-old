@@ -146,6 +146,18 @@
         }
         .search-input:focus { outline: none; border-color: #667eea; }
 
+        .book-desc {
+            font-size: 0.82rem;
+            color: #777;
+            margin-top: 0.3rem;
+            padding-left: 0;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
         .last-update {
             text-align: center; color: #999; font-size: 0.8rem;
             margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #eee;
@@ -275,6 +287,7 @@
                     ${authors ? `<span class="book-sep">—</span><span class="book-authors">${authors}</span>` : ''}
                     ${year ? `<span class="book-date">${year}</span>` : ''}
                 </a>
+                    ${meta.description ? `<div class="book-desc">${(meta.description || '').replace(/<[^>]*>/g, '').substring(0, 150)}…</div>` : ''}
             </li>`;
         });
 
