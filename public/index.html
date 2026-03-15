@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -27,7 +27,7 @@
             padding: 2rem;
         }
 
-        /* ── Page de login ── */
+        /* â”€â”€ Page de login â”€â”€ */
         .login-box {
             max-width: 420px;
             margin: 4rem auto;
@@ -100,7 +100,7 @@
             display: block;
         }
 
-        /* ── Page bibliothèque ── */
+        /* â”€â”€ Page bibliothÃ¨que â”€â”€ */
         h1 {
             color: #333;
             margin-bottom: 0.5rem;
@@ -299,10 +299,10 @@
 </head>
 <body>
 
-<!-- ── Page login ── -->
+<!-- â”€â”€ Page login â”€â”€ -->
 <div id="page-login" class="container" style="display:none">
     <div class="login-box">
-        <h1>📚 disponible</h1>
+        <h1>ðŸ“š disponible</h1>
         <p class="subtitle">Entrez votre email pour recevoir un lien de connexion</p>
         <div class="login-form">
             <input type="email" id="login-email" class="login-input" placeholder="votre@email.com" />
@@ -312,16 +312,16 @@
     </div>
 </div>
 
-<!-- ── Page bibliothèque ── -->
+<!-- â”€â”€ Page bibliothÃ¨que â”€â”€ -->
 <div id="page-library" class="container" style="display:none">
     <div class="top-bar">
-        <button class="logout-btn" id="logout-btn">Déconnexion</button>
+        <button class="logout-btn" id="logout-btn">DÃ©connexion</button>
     </div>
 
-    <h1>📚 disponible</h1>
+    <h1>ðŸ“š disponible</h1>
 
     <div class="search-box">
-        <input type="text" id="search" class="search-input" placeholder="🔍 Rechercher ">
+        <input type="text" id="search" class="search-input" placeholder="ðŸ” Rechercher ">
     </div>
 
     <div id="content">
@@ -340,7 +340,7 @@
 
     let allBooks = [];
 
-    // ── Utilitaires ──
+    // â”€â”€ Utilitaires â”€â”€
 
     function getToken() {
         return localStorage.getItem(TOKEN_KEY);
@@ -381,9 +381,9 @@
         return text.substr(0, maxLength) + '...';
     }
 
-    // ── Auth ──
+    // â”€â”€ Auth â”€â”€
 
-    // Vérifie si le token stocké est encore valide
+    // VÃ©rifie si le token stockÃ© est encore valide
     async function checkToken() {
         const token = getToken();
         if (!token) return false;
@@ -398,7 +398,7 @@
         }
     }
 
-    // Gère le magic link dans l'URL au retour de l'email
+    // GÃ¨re le magic link dans l'URL au retour de l'email
     async function handleMagicLink() {
         const params = new URLSearchParams(window.location.search);
         const token = params.get('token');
@@ -420,7 +420,7 @@
         return false;
     }
 
-    // ── Login ──
+    // â”€â”€ Login â”€â”€
 
     async function requestMagicLink(email) {
         const btn = document.getElementById('login-btn');
@@ -440,32 +440,32 @@
 
             if (resp.ok) {
                 msg.className = 'login-message success';
-                msg.textContent = '✅ Lien envoyé ! Vérifiez votre boîte mail (et les spams).';
+                msg.textContent = 'âœ… Lien envoyÃ© ! VÃ©rifiez votre boÃ®te mail (et les spams).';
                 document.getElementById('login-email').value = '';
             } else {
                 msg.className = 'login-message error';
-                msg.textContent = '❌ Erreur lors de l\'envoi. Réessayez.';
+                msg.textContent = 'âŒ Erreur lors de l\'envoi. RÃ©essayez.';
             }
         } catch {
             msg.className = 'login-message error';
-            msg.textContent = '❌ Service indisponible. Réessayez plus tard.';
+            msg.textContent = 'âŒ Service indisponible. RÃ©essayez plus tard.';
         } finally {
             btn.disabled = false;
             btn.textContent = 'Envoyer le lien';
         }
     }
 
-    // ── Bibliothèque ──
+    // â”€â”€ BibliothÃ¨que â”€â”€
 
     function displayBooks(books) {
         const content = document.getElementById('content');
 
         if (books.length === 0) {
-            content.innerHTML = '<div class="no-files">Aucun livre ne correspond à votre recherche.</div>';
+            content.innerHTML = '<div class="no-files">Aucun livre ne correspond Ã  votre recherche.</div>';
             return;
         }
 
-        let html = `<div class="count">${books.length} ligne(s) affichée(s)</div>`;
+        let html = `<div class="count">${books.length} ligne(s) affichÃ©e(s)</div>`;
         html += '<ul class="book-list">';
 
         books.forEach(file => {
@@ -477,11 +477,11 @@
                             <div class="book-title">${file.displayName}</div>
                             ${meta.authors ? `<div class="book-authors">par ${meta.authors.join(', ')}</div>` : ''}
                         </div>
-                        <span class="book-icon">📖</span>
+                        <span class="book-icon">ðŸ“–</span>
                     </div>
                     <div class="book-meta">
-                        <span class="meta-item">💾 ${formatSize(file.size)}</span>
-                        ${meta.date ? `<span class="meta-item">📅 ${meta.date.split('-')[0]}</span>` : ''}
+                        <span class="meta-item">ðŸ’¾ ${formatSize(file.size)}</span>
+                        ${meta.date ? `<span class="meta-item">ðŸ“… ${meta.date.split('-')[0]}</span>` : ''}
                     </div>
                     ${meta.description ? `<div class="book-description">${truncate(meta.description, 200)}</div>` : ''}
                     ${meta.subjects && meta.subjects.length > 0 ? `
@@ -495,7 +495,7 @@
         html += '</ul>';
         content.innerHTML = html;
 
-        // Téléchargement avec Bearer token
+        // TÃ©lÃ©chargement avec Bearer token
         document.querySelectorAll('[data-epub]').forEach(link => {
             link.addEventListener('click', async (e) => {
                 e.preventDefault();
@@ -513,7 +513,7 @@
                     a.click();
                     URL.revokeObjectURL(a.href);
                 } catch (err) {
-                    alert('Erreur lors du téléchargement.');
+                    alert('Erreur lors du tÃ©lÃ©chargement.');
                 }
             });
         });
@@ -539,7 +539,7 @@
         const token = getToken();
 
         try {
-            const resp = await fetch('/api/books', {
+            const resp = await fetch('/library/api/books', {
                 headers: { 'Authorization': 'Bearer ' + token }
             });
 
@@ -554,7 +554,7 @@
             displayBooks(allBooks);
 
         } catch (error) {
-            content.innerHTML = `<div class="error">❌ Erreur de chargement : ${error.message}</div>`;
+            content.innerHTML = `<div class="error">âŒ Erreur de chargement : ${error.message}</div>`;
         }
     }
 
@@ -572,7 +572,7 @@
         showPage('login');
     }
 
-    // ── Init ──
+    // â”€â”€ Init â”€â”€
 
     async function init() {
         // 1. Magic link dans l'URL ?
