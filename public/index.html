@@ -155,20 +155,17 @@
 
             books.forEach(file => {
                 const meta = file.metadata || {};
+                const year = meta.date ? meta.date.split('-')[0] : null;
+                const authors = meta.authors ? meta.authors.join(', ') : null;
+                const epubPath = '/library' + file.path;
+
                 html += `
                 <li class="book-item">
-                    <a href="${file.path}" class="book-link" download>
+                    <a href="${epubPath}" class="book-link" download>
                         <div class="book-header">
-                            <div style="flex:1">
-                                <div class="book-title">${file.displayName}</div>
-                                ${meta.authors ? `<div class="book-authors">par ${meta.authors.join(', ')}</div>` : ''}
-                            </div>
-                            <span class="book-icon">📖</span>
-                        </div>
-                        <div class="book-meta">
-                            <span class="meta-item">💾 ${formatSize(file.size)}</span>
-                            ${meta.date ? `<span class="meta-item">📅 ${meta.date.split('-')[0]}</span>` : ''}
-                            ${meta.publisher ? `<span class="meta-item">🏢 ${meta.publisher}</span>` : ''}
+                            <span class="book-title">${file.displayName}</span>
+                            ${authors ? `<span class="book-authors">${authors}</span>` : ''}
+                            ${year   ? `<span class="book-year">${year}</span>`       : ''}
                         </div>
                         ${meta.description ? `<div class="book-description">${truncate(meta.description, 200)}</div>` : ''}
                         ${meta.subjects && meta.subjects.length > 0 ? `
