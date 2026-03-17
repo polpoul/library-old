@@ -245,6 +245,19 @@ func booksHandler(ressourcesPath string) http.HandlerFunc {
 	}
 }
 
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "https://library.vivalink.top")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 func main() {
@@ -268,7 +281,7 @@ func main() {
 
 	// Routes protégées par auth
 	protected := func(h http.Handler) http.Handler {
-		return authMiddleware(authURL, h)
+		return corsMiddleware(authMiddleware(authURL, h))
 	}
 
 	// API — protégée
@@ -278,7 +291,7 @@ func main() {
 	fs := http.FileServer(http.Dir(ressourcesPath))
 	mux.Handle("/ressources/", protected(http.StripPrefix("/ressources/", fs)))
 
-	// Frontend statique — public (gère la page de login)
+	// Frontend statique — public
 	mux.Handle("/", http.FileServer(http.Dir("./public")))
 
 	log.Printf("📚 Library server on :%s", port)
