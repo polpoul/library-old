@@ -1,6 +1,5 @@
 package main
 
-
 import (
 	"archive/zip"
 	"encoding/json"
@@ -300,8 +299,9 @@ func main() {
 	// API — protégée
 	mux.Handle("/api/books", protected(booksHandler(ressourcesPath)))
 
-	// Liste publique — sans auth, sans liens de téléchargement
+	// Liste et téléchargement publics — sans auth
 	mux.Handle("/api/books/public", corsPublicMiddleware(booksHandler(ressourcesPath)))
+	mux.Handle("/ressources-public/", corsPublicMiddleware(http.StripPrefix("/ressources-public/", fs)))
 
 	// Téléchargement EPUBs — protégé
 	fs := http.FileServer(http.Dir(ressourcesPath))
