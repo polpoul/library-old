@@ -296,6 +296,8 @@ func main() {
 		return corsMiddleware(authMiddleware(authURL, h))
 	}
 
+	fs := http.FileServer(http.Dir(ressourcesPath))
+
 	// API — protégée
 	mux.Handle("/api/books", protected(booksHandler(ressourcesPath)))
 
@@ -304,7 +306,6 @@ func main() {
 	mux.Handle("/ressources-public/", corsPublicMiddleware(http.StripPrefix("/ressources-public/", fs)))
 
 	// Téléchargement EPUBs — protégé
-	fs := http.FileServer(http.Dir(ressourcesPath))
 	mux.Handle("/ressources/", protected(http.StripPrefix("/ressources/", fs)))
 
 	// Frontend statique — public
