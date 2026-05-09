@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bibliothèque</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            background: #f5f4f0;
+            color: #1a1a2e;
+            margin: 0;
+            padding: 1rem;
+        }
+        h1 {
+            font-size: 1.4rem;
+            margin-bottom: 1.2rem;
+            color: #444;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 0.5rem;
+        }
+        ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        li {
+            background: white;
+            border: 1px solid #e8e6e0;
+            border-radius: 8px;
+            padding: 0.8rem 1rem;
+            margin-bottom: 0.6rem;
+        }
+        .titre {
+            font-size: 1rem;
+            font-weight: bold;
+            margin-bottom: 0.2rem;
+        }
+        .auteur {
+            font-size: 0.85rem;
+            color: #666;
+            font-style: italic;
+        }
+        #msg {
+            color: #888;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <h1>📚 Bibliothèque</h1>
+    <p id="msg">Chargement…</p>
+    <ul id="liste"></ul>
+    <script>
+        fetch('/api/books/public')
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                document.getElementById('msg').style.display = 'none';
+                var liste = document.getElementById('liste');
+                if (!d.files || d.files.length === 0) {
+                    document.getElementById('msg').textContent = 'Aucun livre disponible.';
+                    document.getElementById('msg').style.display = '';
+                    return;
+                }
+                d.files.forEach(function(b) {
+                    var li = document.createElement('li');
+                    var titre = b.metadata && b.metadata.title ? b.metadata.title : b.displayName;
+                    var auteurs = b.metadata && b.metadata.authors && b.metadata.authors.length > 0
+                        ? b.metadata.authors.join(', ') : '';
+                    li.innerHTML = '<div class="titre">' + titre + '</div>' +
+                        (auteurs ? '<div class="auteur">' + auteurs + '</div>' : '');
+                    liste.appendChild(li);
+                });
+            })
+            .catch(function() {
+                document.getElementById('msg').textContent = 'Erreur de chargement.';
+            });
+    </script>
+</body>
+</html>
