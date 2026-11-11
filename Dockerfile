@@ -1,5 +1,5 @@
 # ── Stage 1 : compilation ────────────────────────────────────────────────────
-FROM golang:1.22-alpine AS builder
+FROM golang:1.25-alpine AS builder
 
 WORKDIR /app
 
@@ -10,7 +10,7 @@ COPY main.go ./
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o library .
 
 # ── Stage 2 : image finale minimale ──────────────────────────────────────────
-FROM alpine:3.19
+FROM alpine:3.22
 
 # Certificats TLS (utile si le service fait des appels HTTPS sortants)
 RUN apk add --no-cache ca-certificates
